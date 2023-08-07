@@ -1,8 +1,7 @@
-package chapter2;
+package chapter02;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -102,37 +101,6 @@ public class Example001 {
         return result;
     }
 
-}
-
-class Apple{
-    private String color;
-    private double weight;
-
-    public Apple(String color, double weight){
-        this.color = color;
-        this.weight = weight;
-    }
-
-
-    public double getWeight(){
-        return weight;
-    }
-    public String getColor(){
-        return color;
-    }
-
-    public void setColor(){
-        this.color = color;
-    }
-
-    public void setWeight(){
-        this.weight = weight;
-    }
-
-    @Override
-    public String toString() {
-        return "[" + this.color + ", " + this.weight + "]";
-    }
 }
 
 interface ApplePredicate{
