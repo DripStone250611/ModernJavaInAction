@@ -1,4 +1,4 @@
-# Modern In Java
+# Modern Java In Action
 
 ## 第 2 章 通过行为参数化传递代码
 
@@ -290,5 +290,97 @@ Function<Integer, Integer> g = x -> x * 2;
 Function<Integer, Integer> h = f.andThen(g); //数学上会写作g(f(x))
 
 Function<Integer, Integer> h = f.compose(g); //数学上会写作f
+```
+
+
+
+## 第 4 章  引入流
+
+
+
+Java8中的Stream API可以让你写出这样的代码：
+
+- 声明性-----更简洁、更易读
+- 可复合-----更灵活
+- 可并行-----性能更好
+
+**流的定义**
+
+​	从支持**数据处理操作**的**源**生成的**元素序列**。
+
+**流的两个重要特点**
+
+- 流水线：很多流操作本身会返回一个流，这样多个操作就可以连接起来，构成一个很大的流水线。
+- 内部迭代：与集合使用迭代器进行显示迭代不同，流的迭代操作是在后台进行的。
+
+**有序列表生成的流会保持原有顺序**
+
+**流只能遍历一次**
+
+​	和迭代器类似，流只能遍历一次。遍历完之后，我们就说这个流已经被消费掉了。
+
+**流操作有两大类**
+
+- 中间操作：中间操作会返回另一个流
+- 终端操作：终端操作会从流的流水线上生成结果，其结果是任何不是流的值。
+
+|   操作   | 类型 |  返回类型   |     操作参数     |   函数描述符   |
+| :------: | :--: | :---------: | :--------------: | :------------: |
+|  filter  | 中间 | `Stream<T>` |  `Predicate<T>`  | `T -> boolean` |
+|   map    | 中间 | `Stream<T>` | `Function<T, R>` |    `T -> R`    |
+|  limit   | 中间 | `Stream<T>` |                  |                |
+|  sorted  | 中间 | `Stream<T>` | `Comparator<T>`  | `(T, T)->int`  |
+| distinct | 中间 | `Stream<T>` |                  |                |
+
+| 操作    | 类型 | 返回类型    | 目的                               |
+| ------- | ---- | ----------- | ---------------------------------- |
+| forEach | 终端 | void        | 消费流中的每个元素并对其应用lambda |
+| count   | 终端 | long        | 返回流中元素的个数                 |
+| collect | 终端 | （generic） | 把流规约成一个集合，比如List，Map  |
+
+## 第 5 章 使用流
+
+**本章要点**
+
+- 筛选、切片和映射
+- 查找、匹配和规约
+- 使用数值范围等数值流
+- 从多个源创建流
+- 无限流
+
+**筛选、切片和映射**
+
+```java
+List<Integer> numbers = Arrays.asList(1,2,3,1,3,3,2);
+// 筛选
+numbers.stream()
+  .filter(i -> i % 2 == 0)
+  .distinct()
+  .forEach(System.out::println);
+// 切片
+// takeWhile会在遇到第一个不符合要求的元素时停止处理
+List<Integer> lessThreeNumbers = numbers.stream()
+  																			.takeWhile(i -> i < 3)
+  																			.collect(toList());
+// dropWhile会丢弃满足条件的元素，在遇到第一个不满足元素后返回剩余数据流
+List<Integer> greaterOrEqualThreeNumbers = numbers.stream()
+  																								.dropWhile(i -> i < 3)
+  																								.collect(toList());
+// 截短流
+List<Integer> firstThreeNumbers = numbers.stream()
+  																			.limit(3)
+  																			.collect(toList());
+// 跳过元素
+List<Integer> skipNumbers = numbers.stream()
+  .skip(3)
+  .collect(toList());
+
+
+//flatMap
+List<String> uniqueCharacters = words.stream()
+  .map(word -> word.split(""))
+  .flatMap(Arrays::stream)
+  .distinct()
+  .collect(toList());
 ```
 
