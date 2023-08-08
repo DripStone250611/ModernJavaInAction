@@ -488,3 +488,66 @@ Stream.generate(Math::random)
     .forEach(System.out::println);
 ```
 
+
+
+## 第 6 章 用流收集数据
+
+**本章要点**
+
+- 用Collectors类创建和使用收集器
+- 将数据流归约成一个值
+- 汇总：归约的特殊情况
+- 数据分组和分区
+- 开发你的自定义收集器
+
+```java
+// 将交易列表按照货币种类分组
+public static Map<Currency, List<Transaction>> groupTransactionByCurrency(List<Transaction> transactions){
+    Map<Currency, List<Transaction>> transactionByCurrency = new HashMap<>();
+    for(Transaction transaction : transactions){
+        Currency currency = transaction.getCurrency();
+        List<Transaction> transactionsForCurrency = transactionByCurrency.get(currency);
+        if(transactionsForCurrency == null){
+            transactionsForCurrency = new ArrayList<>();
+            transactionByCurrency.put(currency, transactionsForCurrency);
+        }
+        transactionsForCurrency.add(transaction);
+    }
+}
+// 使用流简化代码
+public static Map<Currency, List<Transaction>> groupTransactionByCurrency(List<Transaction> transactions){
+	return transactions.stream()
+        .collect(groupingBy(Transaction::getCurrency));
+}
+```
+
+**预定义收集器**
+
+​	Collector实用类中提供了很多静态工厂方法，它们主要提供了三大功能：
+
+- 将流元素归约和汇总为一个值
+- 元素分组
+- 元素分区
+
+**归约和汇总**
+
+```java
+// Collectors.maxBy 和 Collectors.minBy 来计算流中的最大值或最小值
+Comparator<Dish> dishCaloriesComparator = Comparator.comparingInt(Dish::getCalories);
+Optional<Dish> mostCaloriesDish = menu.stream().collect(maxBy(dishCaloriesComparator));
+// Collectors.summingInt
+int totalCalories = menu.stream().collect(summingInt(Dish::getCalories));
+double avgCalories = menu.stream().collect(averagingInt(Dish::getCalories));
+
+// summarizingInt收集器会把所有这些信息收集到IntSummarySatatistics类里，它提供了方便的取值（getter）方法访问结果。
+IntSummaryStatistics menuStatistics = menu.stream().collect(summarizingInt(Dish::getCalories));
+// 相应的summarizingLong和summarizingDouble工厂方法有相关的LongSummaryStatistics和DoubleSummaryStatistics类型
+
+//joining工厂方法返回的收集器会把对流中的每一个对象应用toString方法得到的所有字符串连接成一个字符串。
+String shortMenu = menu.stream().map(Dish::getName).collect(joining()); //join内部使用了StringBuilder来把生成的字符串追加起来。
+// joining工厂方法有一个重载版本可以接受元素之间的分界符，这样就可以得到一个逗号分割的菜肴名称列表。
+String shortMenu = menu.stream().map(Dish::getName).collect(joining(","));
+```
+
+
+

@@ -67,8 +67,6 @@ public class Exercise002 {
                 .flatMapToInt(Arrays::stream)
                 .forEach(System.out::println);
 
-
-
     }
 
 
@@ -119,5 +117,6 @@ public class Exercise002 {
                 .findFirst()
                 .get();
     }
+
 
 }
