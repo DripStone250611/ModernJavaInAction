@@ -338,3 +338,49 @@ Java8中的Stream API可以让你写出这样的代码：
 | count   | 终端 | long        | 返回流中元素的个数                 |
 | collect | 终端 | （generic） | 把流规约成一个集合，比如List，Map  |
 
+## 第 5 章 使用流
+
+**本章要点**
+
+- 筛选、切片和映射
+- 查找、匹配和规约
+- 使用数值范围等数值流
+- 从多个源创建流
+- 无限流
+
+**筛选、切片和映射**
+
+```java
+List<Integer> numbers = Arrays.asList(1,2,3,1,3,3,2);
+// 筛选
+numbers.stream()
+  .filter(i -> i % 2 == 0)
+  .distinct()
+  .forEach(System.out::println);
+// 切片
+// takeWhile会在遇到第一个不符合要求的元素时停止处理
+List<Integer> lessThreeNumbers = numbers.stream()
+  																			.takeWhile(i -> i < 3)
+  																			.collect(toList());
+// dropWhile会丢弃满足条件的元素，在遇到第一个不满足元素后返回剩余数据流
+List<Integer> greaterOrEqualThreeNumbers = numbers.stream()
+  																								.dropWhile(i -> i < 3)
+  																								.collect(toList());
+// 截短流
+List<Integer> firstThreeNumbers = numbers.stream()
+  																			.limit(3)
+  																			.collect(toList());
+// 跳过元素
+List<Integer> skipNumbers = numbers.stream()
+  .skip(3)
+  .collect(toList());
+
+
+//flatMap
+List<String> uniqueCharacters = words.stream()
+  .map(word -> word.split(""))
+  .flatMap(Arrays::stream)
+  .distinct()
+  .collect(toList());
+```
+
