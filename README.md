@@ -359,22 +359,15 @@ numbers.stream()
   .forEach(System.out::println);
 // 切片
 // takeWhile会在遇到第一个不符合要求的元素时停止处理
-List<Integer> lessThreeNumbers = numbers.stream()
-  																			.takeWhile(i -> i < 3)
-  																			.collect(toList());
+List<Integer> lessThreeNumbers = numbers.stream().takeWhile(i -> i < 3).collect(toList());
 // dropWhile会丢弃满足条件的元素，在遇到第一个不满足元素后返回剩余数据流
-List<Integer> greaterOrEqualThreeNumbers = numbers.stream()
-  																								.dropWhile(i -> i < 3)
-  																								.collect(toList());
+List<Integer> greaterOrEqualThreeNumbers = numbers.stream().dropWhile(i -> i < 3).collect(toList());
 // 截短流
-List<Integer> firstThreeNumbers = numbers.stream()
-  																			.limit(3)
-  																			.collect(toList());
+List<Integer> firstThreeNumbers = numbers.stream().limit(3).collect(toList());
 // 跳过元素
 List<Integer> skipNumbers = numbers.stream()
   .skip(3)
   .collect(toList());
-
 
 //flatMap
 List<String> uniqueCharacters = words.stream()
@@ -382,5 +375,116 @@ List<String> uniqueCharacters = words.stream()
   .flatMap(Arrays::stream)
   .distinct()
   .collect(toList());
+```
+
+**查找和匹配**
+
+```java
+// 检查谓词是否至少匹配一个元素
+boolean res = numbers1.stream().anyMatch(i -> i == 3);
+// 检查谓词是否匹配所有元素
+boolean isHealthy = numbers1.stream().allMatch(i -> i > 2);
+// 确保数据流中没有任何元素与给定的谓词匹配
+boolean noHealthy = numbers1.stream().noneMatch(i -> i > 2);
+
+// 查找
+// findAny方法将返回当前流中的任意元素
+Optional<Integer> res = numbers1.stream().findAny().ifPresent(i -> System.out.println(i));
+// findFirst方法查找第一个元素
+```
+
+**归约**
+
+​	归约操作就是将流归约成一个值。
+
+```java
+int sum = numbers.stream().reduce(0, (a, b) -> a + b); //reduce 接收两个参数，一个初始值，这里是0，一个BinaryOperator<T>
+// reduce还有一个重载的变体，它不接收初始值，但是会返回一个Optional对象。
+
+Optional<Integer> max = numbers.stream().reduce(Integer::max);
+```
+
+**数值流和数值范围**
+
+​	Java8中引入了三个原始类型特化流接口来解决装箱拆箱的损耗问题：`IntStream`、`DoubleStream`、`LongStream`，分别将流中的元素特化为int、long和double,从而避免了暗含的装箱成本。
+
+- 将流转换为特化版本的常用方法是mapToInt、mapToDouble、mapToLong。
+
+```java
+int calories = menu.stream().mapToInt(Dish::getCalories).sum();
+```
+
+- 要把原始流转换为一般流，可以使用boxed方法。
+
+```java
+IntStream intStream = menu.stream().mapToInt(Dish::getCalories);
+Stream<Integer> stream = inStream.boxed();
+```
+
+- Optional也有一个Optional原始类型特化版本：OptionalInt，OptionalDouble和OptionalLong。
+
+```java
+OptionalInt maxCalories = menu.stream().mapToInt(Dish::getCalories).max();
+int max = maxCalories.orElse(1);
+```
+
+​	Java8中引入了两个可以用于IntStream和LongStream的静态方法，帮助生成数值范围：range和rangeClosed, range不包含结束值。
+
+```java
+IntStream evenNumbers = IntStream.rangeClosed(1, 100).filter(n -> n % 2 == 0);
+```
+
+**构建流**
+
+- 由值构建流，使用静态方法Stream.of
+
+```java
+Stream<String> stream = Stream.of("Modern ", "Java ", "In ", "Action");
+```
+
+- 由可空对象创建流（Java 9提供）
+
+```java
+String homeValue = System.getProperty("home");
+Stream<String> homeValueStream = homeValue == null ? Stream.empty() : Stream.of(value);
+//以上代码在Java 9中可改写成
+Stream<String> homeValueStream = Stream.ofNullable(System.getProperty("home"));
+
+//搭配flatMap处理由可空对象构成的流
+Stream<String> values = Stream.of("config", "home", "user")
+    .flatMap(key -> Stream.ofNullable(System.getProperty(key)));
+```
+
+- 由数组创建流
+
+```java
+int[] numbers = {2,3,4,5,6};
+int sum = Arrays.stream(numbers).sum();
+```
+
+- 由文件生成流
+
+```java
+long uniqueWords = 0;
+try(Stream<String> lines = Files.lines(Paths.get("data.txt"), Charset.defaultCharset())){
+    uniqueWords = lines.flatMap(line -> Arrays.stream(line.split(" ")))
+        .distinct()
+        .count();
+}
+catch(IOException e){
+    
+}
+```
+
+-  从函数生成流
+
+```java
+// Stream API提供了两个静态方法从函数中生成流 Stream.iterate和Stream.generate
+Stream.iterate(0, n -> n + 2)
+    .limit(10)
+    .forEach(System.out::println);
+
+Stream.generate(Math::random)
+    .forEach(System.out::println);
 ```
 
