@@ -549,5 +549,29 @@ String shortMenu = menu.stream().map(Dish::getName).collect(joining()); //join�
 String shortMenu = menu.stream().map(Dish::getName).collect(joining(","));
 ```
 
+**元素分组**
+
+```java
+public enum CaloricLevel{DIET, NORMAL, FAT}
+Map<CaloricLevel, List<Dish>> dishesByCaloricLevel = menu.stream().collect()
+  .groupingBy(dish -> {
+    if(dish.getCaloric() <= 400){
+      return CaloricLevel.DIET;
+    }else if(dish.getCaloric() <= 700){
+      return CaloricLevel.NORMAL;
+    }else{
+      return CaloricLevel.FAT;
+    }
+  })
+  
+
+Map<Dish.Type, List<Dish>> caloricDishesByType = menu.stream()
+  .filter(dish -> dish.getCaloric > 500)
+  .collect(groupingBy(Dish::getType));
+// 上面代码可能存在键值消失
+Map<Dish.Type, List<Dish>> caloricDishesByType = menu.stream()
+  .collect(groupingBy(Dish::getType, filtering(dish -> dish.getCalories() > 500, toList())));
+```
+
 
 
