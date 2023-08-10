@@ -689,3 +689,81 @@ public class ToListCollector<T> implements Collector<T, List<T>, List<T>> {
 }
 ```
 
+## 第 7 章 并行数据处理与性能
+
+```java
+// 对顺序流调用parallel方法，流本身不会有任何实际的变化，它仅仅是在内部设置了一个boolean标志
+// 可以把sequential和parallel组合起来使用
+stream.parallel().filter().sequential().map(...).parallel().reduce();
+```
+
+## 第 8 章 Collection API的增强功能
+
+**本章内容**
+
+- 如何使用集合工厂
+- 学习使用新的惯用模式处理List和Set
+- 学习通过惯用模式处理Map
+
+**集合工厂**
+
+不要在工厂方法创建的列表中存放null元素。
+
+```java
+// 创建一个由少量元素构成的列表
+List<String> friends = new ArrayList<>();
+friends.add("Raphael");
+friends.add("Olivia");
+friends.add("Thibaut");
+
+List<String> friends = Arrays.asList("Raphael", "Olivia", "Thibaut");  // 创建出的列表是固定大小的，不能插入或删除
+// 可以使用friends.set更新元素
+
+
+// Java 9 中新的工厂方法
+// List工厂
+List<String> friends = List.of("Raphael", "Olivia"，"Thibaut");
+// Set工厂
+Set<String> friends = Set.of("Raphael", "Olivia", "Thibaut");   // 不要出现重复元素，会抛异常
+// Map工厂
+Map<String, Integer> ageOfFriends = Map.of("Raphael", 30, "Olivia", 20); // 参数是交替的键值
+
+Map<String, Integer> ageOfFriends = Map.ofEntries(entry("Raphael", 30), entry("Olivia", 20)); //如果超过10个键值对，可以采用这种办法
+```
+
+**使用List和Set**
+
+Java8在List和Set的接口中新引入了以下方法：
+
+- `removeIf`List和Set中都实现了这个方法，移除集合中匹配指定谓词的元素
+- `replaceAll`用于List，使用一个函数（`UnaryOperator`)替换元素
+- `sort`用于List，对列表自身的元素进行排序
+
+**使用Map**
+
+```java
+// forEach方法
+ageOfFriends.forEach((friend, age) -> System.out.println(friend + ": " + age));
+// Map排序， Entry.comparingByValue         Entry.comparingByKey
+ageOfFriends.entrySet().stream().sorted(Entry.comparingByKey());
+// getOrDefault方法
+ageOfFriends.getOrDefault("Raphel", 10);
+
+// 计算模式
+// computeIfAbsent	如果指定的键没有对应的值，那么使用该键计算新的值，并将其添加到Map中
+
+// computeIfPresent 如果指定的键在Map中存在，就计算该键的新值，并将其添加到Map中
+
+// compute 使用指定键计算新的值，并将其储存到Map中
+
+// 删除模式 删除某个键值对
+ageOfFriends.remove(key, value);
+
+```
+
+
+
+
+
+
+
