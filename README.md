@@ -571,7 +571,121 @@ Map<Dish.Type, List<Dish>> caloricDishesByType = menu.stream()
 // 上面代码可能存在键值消失
 Map<Dish.Type, List<Dish>> caloricDishesByType = menu.stream()
   .collect(groupingBy(Dish::getType, filtering(dish -> dish.getCalories() > 500, toList())));
+
+Map<String, List<String>> dishTags = new HashMap<>();
+dishTags.put("pork", asList("greasy", "salty"));
+Map<Dish.Type, Set<String>> dishNameByType = menu.stream()
+    .collect(groupingBy(Dish::getType, flatMapping(dish -> 
+                                                  dishTags.get( dish.getName() ).stream(), toSet())));
+
+// 使用toCollection可以对类型进行更多的控制
+Map<Dish.Type, Set<String>> dishNameByType = menu.stream()
+    .collect(groupingBy(Dish::getType, flatMapping(dish ->
+                                                  dishTags.get( dish.getName() ). stream(), toCollection(HashSet::new))));
+
+// 多级分组，可以把一个内层的groupingBy传递给外层groupingBy
+Map<Dish.Type, Map<CaloricLevel, List<Dish>>> dishByTypeCaloricLevel = menu.stream()
+    .collect(groupingBy(Dish::getType,groupingBy(dish ->{
+        if(dish.getCaloric <= 400){
+            return CaloricLevel.DIET;
+        }else if(dish.getCaloric() <= 700)
+            return CaloricLevel.NORMAL;
+        else
+            return CaloricLevel.FAT;
+    })))
+
+// groupingBy里的第二个参数，可以传其他的collector
+Map<Dish.Type, Optional<Dish>> mostCaloricByType = menu.stream()
+    .collect(groupingBy(Dish::getType, maxBy(comparingInt(Dish::getCalories))));
+// 可以使用Collectors.collectingAndThen,将收集器的结果转换为另一种类型
+Map<Dish.Type, Dish> mostCaloricByType = menu.stream()
+    .collect(groupingBy(Dish::getType,  collectingAndThen(maxBy(comparingInt(Dish::getCalories)),Optional::get)));
+```
+
+**分区**
+
+​	分区是分组的特殊情况，分区函数返回一个布尔值，分区得到的分组Map的键值是boolean，最多可分成两组。
+
+​	优势：分区的好处在于保留了分区函数返回true或false的两套流元素列表。
+
+```java
+// 返回一个二级Map
+Map<Boolean, Map<Dish.Type, List<Dish>>> vegeratianDishesByType = menu.stream()
+    .collect(partitioningBy(Dish::isVegetarian, groupingBy(Dish::getType)));
+```
+
+Collectors类的静态工厂方法
+
+```java
+//	toList			List<T>					把流中的项目收集到一个List中
+List<Dish> dishes = menu.stream().collect(toList());
+//	toSet			Set<T>					把流中所有项目收集到一个Set中
+Set<Dish> dishes = menu.stream().collect(toSet());
+//	toCollection	Collection<T>			把流中的项目收集到给定的供应源创建的集合
+Collection<Dish> dishes = menu.stream().collect(toCollection(ArrayList::new))；
+//	counting		Long					计算流中元素的个数
+long howManyDishes = menu.stream().collect(counting());
+//	summingInt		Integer					计算流中项目整数元素的和
+int totalCalories = menu.stream().collect(summingInt(Dish::getCalories));
+//	averagingInt	Double					计算流中项目的平均值
+double avgCalories = menu.stream().collect(averagingInt(Dish:;getCalories));
+//	summarizingInt	IntSummaryStatistics	收集关于流中项目Integer属性的统计值：最大、最小、总和、平均值
+IntSummaryStatistics menuStatistics = menuStream.collect(summarizingInt(Dish::getCalories));
+//	joining			String					连接对流中每个项目调用toString方法所生成的字符串
+String shortMenu = menu.stream().map(Dish::getName).collect(joining(","));
+//	maxBy			Optional<T>				一个包裹了流中按照给定比较器选出的最大元素的Optional
+Optional<Dish> fattest = menu.stream().collect(maxBy(comparingInt(Dish::getCalories)));
+//	minBy			Optional<T>				一个包裹流中按照给定比较器选出的最小元素的Optional
+Optional<Dish> lightest = menu.stream().collect(minBy(comparingInt(Dish::getCalories)));
+//	reducing		归约操作产生的类型		  从一个作为累加器的初始值开始，利用BinaryOperator与流中的元素逐个结合，将流归为单一值
+int totalCalories = menu.stream().collect(reducing(0, Dish::getCalories, Integer::sum));
+//	collectingAndThen 转换函数返回的类型		  包裹另一个收集器，对其结果应用转换函数
+int	howManyDishes = menu.stream().collect(collectingAndThen(toList(), List::size));
+//	groupingBy		Map<K, List<T>>			根据项目的一个属性的值对流中的项目作分组，并将属性值作为结果Map的键
+
+// partitioningBy	Map<Boolean, List<T>>	根据对流中每个项目应用Predicate的结果来对项目分区
 ```
 
 
+
+**收集器接口**
+
+```java
+public interface Collector<T, A, R> {
+    Supplier<A>	supplier();							// 创建一个空的累加器实例，供数据收集过程使用
+    BiConsumer<A, T> accumulator();					// 将元素添加到结果容器
+    Function<A, R> finisher();						// 对结果容器应用最终转换
+    BinaryOperator<A> combiner();					// 合并两个结果容器（对流并行处理时会用到）
+    Set<Characteristics> characteristics();			// 返回一个不可变的characteristics集合，定义收集器的行为
+}
+```
+
+- T是流中要收集项目的泛型
+- A是累加器的类型，累加器是在收集过程中用于累积部分结果的对象
+- R是收集操作得到的对象的类型
+
+```java
+public class ToListCollector<T> implements Collector<T, List<T>, List<T>> {
+    public Supplier<List<T>> supplier(){
+        return ArrayList::new;
+    }
+    
+    public BiConsumer<List<T>, T> accumulator(){
+        return List::add;
+    }
+    public Function<List<T>, List<T>> finisher(){
+        return Function.identity();
+    }
+    public BinaryOperator<List<T>> combiner(){
+        return (list1, list2) ->{
+            list1.addAll(list2);
+            return list1;
+        }
+    }
+    public Set<Characteristics> characteristics(){
+        return Collections.unmodifiableSet(EnumSet.of(
+        IDENTIY_FINISH, CONCURRENT));
+    }
+}
+```
 
