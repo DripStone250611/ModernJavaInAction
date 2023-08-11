@@ -759,6 +759,12 @@ ageOfFriends.getOrDefault("Raphel", 10);
 // 删除模式 删除某个键值对
 ageOfFriends.remove(key, value);
 
+// 替换模式，replaceAll--通过BiFunction替换Map中每个项的值。 Replace--如果键存在，就可以通过该方法替换Map中该键对应的值
+
+// merge方法  Java8中新增的方法
+Map<String, String> everyone = new HashMap<>(family);
+friends.forEach((k, v) -> 
+               everyone.merge(k, v, (movie1, movie2) -> movie1 + " & " + movie2));
 ```
 
 
