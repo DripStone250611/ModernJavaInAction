@@ -845,5 +845,61 @@ public class Validator{
 
 **模板方法**
 
-如果你需要采用某个算法的框架，同时
+如果你需要采用某个算法的框架，同时又希望有一定的灵活度，能对它的某些部分进行改进，那么采用模版方法设计模式是比较通用的解决方案。
+
+```java
+public void processCustomer(int id, Consumer<Customer> makeCustomerHappy){
+  Customer costomer = Database.getCustomerWithId(id);
+  makeCustomerHappy.accept(c);
+}
+```
+
+**观察者模式**
+
+某些事件发生时，如果一个对象需要自动地通知其他多个对象，就会采用该方案。
+
+```java
+interface Observer {
+  void notify(String tweet);
+}
+class NYTimes implements Observer{
+  public void notify(String tweet){
+    if(tweet != null && tweet.contains("money")){
+      System.out.println("Breaking news in NY!" + tweet);
+    }
+  }
+}
+
+class Guardian implements Observer{
+  public void notify(String tweet){
+    if(tweet != null && tweet.contains("queen")){
+      System.out.println("Yet more news from London..." + tweet);
+    }
+  }
+}
+
+interface Subject{
+  void registerObserver(Observer o);
+  void notifyObservers(String tweet);
+}
+
+class Feed implements Subject{
+  private final List<Observer> observers = new ArrayList<>();
+  public void registerObserver(Observer o){
+    this.observers.add(o);
+  }
+  
+  public void notifyObservers(String tweet){
+    observers.forEach(o -> o.notify(tweet));
+  }
+}
+```
+
+**责任链模式**
+
+责任链模式是一种创建处理对象序列（比如操作序列）的通用方案。一个处理对象可能需要再完成一些工作之后，将结果传递给另一个对象，这个对象接着做一些工作，再转交给下一个处理对象。
+
+**工厂模式**
+
+使用工厂模式，你无需项客户暴露实例化的逻辑就能完成对象的创建。
 
