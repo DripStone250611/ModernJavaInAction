@@ -769,7 +769,81 @@ friends.forEach((k, v) ->
 
 
 
+## 第 9 章 重构、测试和调试
+
+**本章内容**
+
+- 如何使用lambda表达式重构代码
+- Lambda表达式对面向对象的设计模式的影响
+- Lambda表达式的测试
+- 如何调试使用Lambda表达式和Stream API的代码
 
 
 
+匿名类和Lambda表达式的区别：
+
+- 匿名类和Lambda表达式中的this和super含义是不同的，在匿名类中this代表的是类本身，但是在lambda中，它代表的是外部所在类。
+- 其次，匿名类可以屏蔽外部类的变量，但是Lambda表达式不能。
+- 在涉及重载的上下文里，将匿名类转换为Lambda表达式可能导致最终代码更为晦涩。
+
+
+
+没有函数接口就无法使用Lambda表达式，什么情况下使用函数接口呢？有条件的延迟执行和环绕执行。
+
+```java
+if (logger.isLoogable(Log.FINER){
+    logger.finer("Problem: " + generateDiagnostic());
+})
+```
+
+以上这段代码的问题：
+
+- 日志器的状态（它支持哪些日志等级）通过`isLoggable`方法暴露给了客户端代码。
+- 为什么要在每次输出一条日志之前都去查询日志器对象的状态？
+
+
+
+**策略模式**
+
+策略模式代表了一种解决一类算法的通用解决方案，你可以在运行时选择使用哪种方案。
+
+策略模式包含三部分内容：
+
+- 一个代表某个算法的接口（Strategy接口）
+- 一个或多个该接口的具体实现，它们代表了算法的多种实现（比如，实体类ConcreteSrategyA或ConcreteStrategyB）
+- 一个或多个使用策略对象的客户
+
+假设你希望验证输入的内容是否根据标准进行了恰当的格式化（比如只包含小写字母或数字）。你可以从定义一个验证文本的接口入手：
+
+```java
+public interface ValidationStrategy{
+    boolean execute(String s);
+}
+// 然后定义多种实现
+public class IsAllLowerCase implements ValidationStrategy{
+    public boolean execute(String s){
+        return s.matches("[a-z]+");
+    }
+}
+public class IsNumeric implements ValidationStrategy{
+    public boolean execute(String s){
+        return s.matches("\\d+");
+    }
+}
+
+// 之后就可以在程序中使用这些略有差异的验证策略了
+public class Validator{
+    private final ValidationStrategy strategy;
+    public Validator(ValidationStrategy v){
+        this.strategy = v;
+    }
+    public boolean validate(String s){
+        returns strategy.execute(s);
+    }
+}
+```
+
+**模板方法**
+
+如果你需要采用某个算法的框架，同时
 
