@@ -903,3 +903,138 @@ class Feed implements Subject{
 
 使用工厂模式，你无需项客户暴露实例化的逻辑就能完成对象的创建。
 
+
+
+
+
+## 第 12 章  新的日期和时间API
+
+
+
+**使用`LocalDate`和`LocalTime` **
+
+```java
+LocalDate date = LocalDate.of(2017, 9, 21);
+int year = date.getYear();
+Month month = date.getMonth();
+int day = date.getDayOfMonth();
+DayOfWeek dow = date.getDayOfWeek();
+boolean leap = date.isLeapYear();
+
+// 也可以使用工厂方法now从系统时钟中获取当前的日期
+LocalDate today = LocalDate.now();
+```
+
+可以通过传递一个`TemporalField`参数给get方法访问日期信息， `ChronoField`枚举实现了`temporal`接口
+
+```java
+int year = date.get(ChronoField.YEAR);
+int month = date.get(ChronoField.MONTH_OF_YEAR);
+int day = date.get(ChronoField.DAY_OF_MONTH);
+```
+
+可以使用Java内建的方法访问
+
+```java
+int year = date.getYear();
+int month = date.getMonthValue();
+int day = date.getDayOfMonth();
+```
+
+创建`LocalTime`
+
+```java
+LocalTime time = LocalTime.of(12, 45, 20);
+int hour = time.getHour();
+int minute = time.getMinute();
+int second = time.getSecond();
+```
+
+```java
+// LocalDate和LocalTime都可以解析代表它们的字符串创建
+LocalDate date = LocalDate.parse("2017-09-21");
+LocalTime time = LocalTime.parse("13:45:20");
+```
+
+**合并日期和时间**
+
+这个复合类名叫`LocalDateTime`，是`LocalDate`和`LocalTime`的合体，它同时表示了日期和时间，但不带有时区信息。
+
+```java
+LocalDateTime dt1 = LocalDateTime.of(2014, Month.SEPTEMBER, 21, 13, 45, 20);
+LocalDateTime dt2 = LocalDateTime.of(date, time);
+LocalDateTime dt3 = date.atTime(13, 45, 20);
+LocalDateTime dt4 = date.atTime(time);
+LocalDateTime dt5 = time.atDate(date);
+```
+
+**提取日期或时间**
+
+```java
+LocalDate date1 = dt1.toLocalDate();
+LocalTime time1 = dt1.toLocalTime();
+```
+
+
+
+**机器的日期和时间格式**
+
+```java
+Instant.ofEpochSecond(3);
+Instant.ofEpochSecond(3, 0);
+Instant.ofEpochSecond(2, 1_000_000_000); 	// 2秒之后再加上10亿纳秒
+Instant.ofEpochSecond(4, -1_000_000_000);
+// Instant类也支持静态工厂方法now
+int day = Instant.now().get(ChronoField.DAY_OF_MONTH)
+```
+
+**定义Duration或Period**
+
+```java
+// 可以创建两个LocalTime对象、两个LocalDateTime对象、或者两个Instant对象之间的Duration
+// Duration 主要用秒或纳秒衡量时间的长短
+Duration d1 = Duration.between(time1, time2);
+Duration d2 = Duration.between(dateTime1, dateTime2);
+Duration d3 = Duration.between(instant1, instant2);
+
+// 如果需要以年、月或日的方式对多个时间单位建模，可以使用Period类
+Period tenDays = Period.between(LocalDate.of(2017, 9, 11), LocalDate.of(2017, 9,21));
+
+// 使用工厂类创建Duration或Period
+Duration threeMinutes = Duration.ofMinute(3);
+Duration threeMinutes = Duration.of(3, ChronoUnit.MINUTES);
+
+Period tenDays = Period.ofDays(10);
+Period threeWeeks = Period.ofWeeks(3);
+Period twoYearsSixMonthsOneDay = Period.of(2, 6, 1);
+```
+
+**操纵、解析和格式化日期**
+
+```java
+// 使用withAttribute方法创建对象的副本来修改日期
+LocalDate date1 = LocalDate.of(2017, 9, 21);    // 2017-09-21
+LocalDate date2 = date1.withYear(2011);			// 2011-09-21
+LocalDate date3 = date2.withDayOfMonth(25);    // 2011-09-25
+LocalDate date4 = date3.with(ChronoField.MONTH_OF_YEAR, 2);
+
+// 以相对的方式修改LocalDate对象的属性
+LocalDate date1 = LocalDate.of(2017, 9, 21);
+LocalDate date2 = date1.plusWeeks(1);
+LocalDate date3 = date2.minusYears(6);
+LocalDate date4 = date3.plus(6, ChronoUnit,MONTHS);
+```
+
+**使用TemporalAdjuster**
+
+如果需要将日期调整到下个周日、下个工作日、或者是本月的最后一天，可以使用重载版的with方法，并向其提供一个`TemporalAdjuster`
+
+```java
+import static java.time.temporal.TemporalAdjusters.*;
+LocalDate date1 = LocalDate.of(2014, 3, 18);
+LocalDate date2 = date1.with(nextOrSame(DayOfWeek,SUNDAY));
+LocalDate date3 = date2.with(lastDayOfMonth());
+```
+
+
+
